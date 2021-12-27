@@ -46,3 +46,11 @@ pub fn despawn(
         }
     }
 }
+
+pub fn health(mut commands: Commands, mut query: Query<(Entity, &Health)>) {
+    for (ent, health) in query.iter_mut() {
+        if health.0 <= 0.0 {
+            commands.entity(ent).despawn()
+        }
+    }
+}

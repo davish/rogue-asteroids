@@ -29,6 +29,7 @@ pub fn run() {
         .add_system(weapons.system())
         .add_system(despawn.system())
         .add_system(damage.system())
+        .add_system(health.system())
         .run();
 }
 
