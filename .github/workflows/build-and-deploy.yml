@@ -39,8 +39,8 @@ jobs:
       - run: cargo install wasm-pack
       - run: wasm-pack build --target web --release
       - run: ls -l pkg
-      - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@4.1.7
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          branch: gh-pages # The branch the action should deploy to.
-          folder: pkg # The folder the action should deploy.
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./pkg
