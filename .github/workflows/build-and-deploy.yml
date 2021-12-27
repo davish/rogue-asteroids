@@ -39,8 +39,12 @@ jobs:
       - run: cargo install wasm-pack
       - run: wasm-pack build --target web --release --out-dir wasm
       - run: rm wasm/.gitignore
+      - run: mkdir -p public/
+      - run: cp index.html public/
+      - run: cp -r assets/ public/
+      - run: cp -r wasm/ public/
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./wasm
+          publish_dir: ./public
