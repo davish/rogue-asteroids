@@ -40,6 +40,8 @@ jobs:
       - run: wasm-pack build --target web --release
       - run: ls -l
       - run: mkdir -p public && cp index.html public/ && cp -r pkg/ public/wasm/ && cp -r assets/ public/
+      - run: ls -l
+      - run: ls public
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@4.1.7
         with:
