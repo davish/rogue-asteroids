@@ -17,4 +17,11 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - run: cargo install wasm-pack
       - run: cargo check
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: contains(github.base_ref, 'main')
+    steps:
+      - run: wasm-pack build --target web --release
