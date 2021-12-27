@@ -38,7 +38,7 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - run: cargo install wasm-pack
       - run: wasm-pack build --target web --release --out-dir wasm
-      - run: ls -l wasm
+      - run: rm wasm/.gitignore
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
