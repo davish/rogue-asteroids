@@ -1,5 +1,4 @@
 target/
-pkg/
 .idea/
 .DS_Store
 .vscode

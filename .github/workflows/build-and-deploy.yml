@@ -39,7 +39,7 @@ jobs:
       - run: cargo install wasm-pack
       - run: wasm-pack build --target web --release
       - run: ls -l
-      - run: mkdir -p public && cp index.html public/ && cp -r pkg/ public/ && cp -r assets/ public/
+      - run: mkdir -p public && cp index.html public/ && cp -r pkg/ public/wasm/ && cp -r assets/ public/
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@4.1.7
         with:
