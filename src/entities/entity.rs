@@ -3,7 +3,7 @@ use bevy_prototype_lyon::entity::ShapeBundle;
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-pub struct Health(pub f32);
+use crate::components::types::*;
 
 #[derive(Bundle)]
 pub struct EntityBundle {
@@ -63,24 +63,11 @@ impl EntityBundle {
                         .collect::<Vec<_>>()),
                 )
                 .unwrap(),
+                flags: ActiveEvents::CONTACT_EVENTS.into(),
                 ..Default::default()
             },
             physics_sync: RigidBodyPositionSync::Discrete,
             health: Health(100.0),
-        }
-    }
-}
-pub struct SpawnedAt(pub f64);
-pub struct DespawnAfter(pub f64);
-
-pub fn despawn_system(
-    mut commands: Commands,
-    time: Res<Time>,
-    mut query: Query<(Entity, &SpawnedAt, &DespawnAfter)>,
-) {
-    for (ent, spawned_at, despawn_after) in query.iter_mut() {
-        if time.seconds_since_startup() - spawned_at.0 > despawn_after.0 {
-            commands.entity(ent).despawn()
         }
     }
 }

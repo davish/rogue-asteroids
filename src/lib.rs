@@ -1,11 +1,15 @@
+mod components;
 mod entities;
+mod systems;
 
-use crate::entities::{asteroid::*, entity::*, ship::*};
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
 use wasm_bindgen::prelude::*;
 
+use crate::components::types::{Asteroid, Player};
+use crate::entities::{asteroid::*, ship::*};
+use crate::systems::{common::*, player::*, ship::*};
 
 #[wasm_bindgen]
 pub fn run() {
@@ -20,10 +24,11 @@ pub fn run() {
         .add_plugin(ShapePlugin)
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
         .add_startup_system(setup.system())
-        .add_system(impulse_system.system())
-        .add_system(player_system.system())
-        .add_system(weapons_system.system())
-        .add_system(despawn_system.system())
+        .add_system(impulse.system())
+        .add_system(player.system())
+        .add_system(weapons.system())
+        .add_system(despawn.system())
+        .add_system(damage.system())
         .run();
 }
 
@@ -36,7 +41,9 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         .spawn_bundle(Ship::new(Vec2::new(0.0, -215.0).into()))
         .insert(Player {});
 
-    commands.spawn_bundle(new_asteroid_bundle());
+    commands
+        .spawn_bundle(new_asteroid_bundle())
+        .insert(Asteroid {});
 
     commands.spawn_bundle(TextBundle {
         style: Style {
