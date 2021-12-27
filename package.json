@@ -1,0 +1,12 @@
+{
+  "name": "rogue_asteroids",
+  "version": "0.1.0",
+  "files": [
+    "rogue_asteroids_bg.wasm",
+    "rogue_asteroids.js",
+    "rogue_asteroids.d.ts"
+  ],
+  "module": "rogue_asteroids.js",
+  "types": "rogue_asteroids.d.ts",
+  "sideEffects": false
+}
