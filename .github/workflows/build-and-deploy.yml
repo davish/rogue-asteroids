@@ -37,10 +37,10 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - run: cargo install wasm-pack
-      - run: wasm-pack build --target web --release
-      - run: ls -l pkg
+      - run: wasm-pack build --target web --release --out-dir wasm
+      - run: ls -l wasm
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./pkg
+          publish_dir: ./wasm
