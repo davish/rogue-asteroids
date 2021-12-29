@@ -2,7 +2,14 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 // use rand::Rng;
 
-use crate::{components::types::*, entities::asteroid::AsteroidBundle, util::project2d};
+use crate::{
+    components::{
+        chunk::{self, SpawnedChunks},
+        types::*,
+    },
+    entities::asteroid::AsteroidBundle,
+    util::project2d,
+};
 
 pub fn damage(
     mut commands: Commands,
@@ -58,24 +65,36 @@ pub fn health(mut commands: Commands, mut query: Query<(Entity, &Health)>) {
 
 pub fn spawn_asteroids(
     mut commands: Commands,
-    player: Query<(&Transform, &RigidBodyVelocity), With<Player>>,
-    asteroids: Query<&Transform, With<Asteroid>>,
+    player: Query<&Transform, With<Player>>,
+    mut spawned_chunks: ResMut<SpawnedChunks>,
 ) {
-    if let Ok((player_pos, player_vel)) = player.single() {
-        let player2 = project2d(player_pos.translation);
-        let min_dist = asteroids
-            .iter()
-            .map(|t| t.translation)
-            .map(project2d)
-            .map(|v| v.distance(player2))
-            .fold(f32::MAX, f32::min);
-        if min_dist != f32::MAX && min_dist > 600.0 {
-            let linvel: Vec2 = player_vel.linvel.into();
-            commands.spawn_bundle(AsteroidBundle::new(
-                (player2 + linvel.normalize() * 300.0).into(),
-                Default::default(),
-            ));
+    if let Ok(player_pos) = player.single() {
+        let surrounding_chunks: Vec<chunk::Chunk> =
+            chunk::Chunk::containing_point(&project2d(player_pos.translation)).surrounding_chunks();
+        let chunks_to_spawn = surrounding_chunks
+            .into_iter()
+            .filter(|c| !spawned_chunks.0.contains(c))
+            .collect::<Vec<_>>();
+
+        for chunk in chunks_to_spawn {
+            AsteroidBundle::spawn_for_chunk(&mut commands, &chunk);
+            spawned_chunks.0.insert(chunk);
         }
+
+        // let player2 = project2d(player_pos.translation);
+        // let min_dist = asteroids
+        //     .iter()
+        //     .map(|t| t.translation)
+        //     .map(project2d)
+        //     .map(|v| v.distance(player2))
+        //     .fold(f32::MAX, f32::min);
+        // if min_dist != f32::MAX && min_dist > 600.0 {
+        //     let linvel: Vec2 = player_vel.linvel.into();
+        //     commands.spawn_bundle(AsteroidBundle::new(
+        //         (player2 + linvel.normalize() * 300.0).into(),
+        //         Default::default(),
+        //     ));
+        // }
         // for asteroid_pos in asteroids.iter() {
         //     let dist =
         //         project2d(player_pos.translation).distance(project2d(asteroid_pos.translation));
