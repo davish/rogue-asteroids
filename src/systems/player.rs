@@ -1,4 +1,7 @@
-use bevy::prelude::*;
+use bevy::{
+    prelude::*,
+    render::{camera::Camera, render_graph::base::camera},
+};
 
 use crate::components::{ship::*, types::Player};
 
@@ -22,6 +25,32 @@ pub fn player(
         controls.shoot = keyboard_input.pressed(KeyCode::Space) && controls.last_shot >= 0.25;
         if controls.shoot {
             controls.last_shot = 0.0;
+        }
+    }
+}
+
+const TRAIL_DIST: f32 = 200.0;
+
+pub fn camera_tracking(
+    mut camera: Query<(&mut Transform, &Camera), Without<Player>>,
+    player: Query<&Transform, (With<Player>, Without<Camera>)>,
+) {
+    if let Ok(player_pos) = player.single() {
+        for (mut cam_pos, cam) in camera.iter_mut() {
+            // Only move the entity camera, not the UI camera.
+            if cam.name == Some(camera::CAMERA_2D.to_string()) {
+                // Project to 2 dimensions.
+                let player_pos2 = Vec2::new(player_pos.translation.x, player_pos.translation.y);
+                let cam_pos2 = Vec2::new(cam_pos.translation.x, cam_pos.translation.y);
+                let dist = player_pos2.distance(cam_pos2);
+                if dist > TRAIL_DIST {
+                    let new_pos =
+                        (cam_pos2 - player_pos2).normalize() * (TRAIL_DIST - dist) + cam_pos2;
+
+                    cam_pos.translation.x = new_pos.x;
+                    cam_pos.translation.y = new_pos.y;
+                }
+            }
         }
     }
 }

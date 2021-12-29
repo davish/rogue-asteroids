@@ -1,13 +1,14 @@
 mod components;
 mod entities;
 mod systems;
+mod util;
 
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
 use wasm_bindgen::prelude::*;
 
-use crate::components::types::{Asteroid, Player};
+use crate::components::types::{Asteroid, LastAsteroidSpawnTime, Player};
 use crate::entities::{asteroid::*, ship::*};
 use crate::systems::{common::*, player::*, ship::*};
 
@@ -30,6 +31,9 @@ pub fn run() {
         .add_system(despawn.system())
         .add_system(damage.system())
         .add_system(health.system())
+        .add_system(camera_tracking.system())
+        .add_system(spawn_asteroids.system())
+        .init_resource::<LastAsteroidSpawnTime>()
         .run();
 }
 
@@ -43,7 +47,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         .insert(Player {});
 
     commands
-        .spawn_bundle(new_asteroid_bundle())
+        .spawn_bundle(AsteroidBundle::new(Default::default(), Default::default()))
         .insert(Asteroid {});
 
     commands.spawn_bundle(TextBundle {

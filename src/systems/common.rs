@@ -1,7 +1,8 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
+// use rand::Rng;
 
-use crate::components::types::*;
+use crate::{components::types::*, entities::asteroid::AsteroidBundle, util::project2d};
 
 pub fn damage(
     mut commands: Commands,
@@ -52,5 +53,36 @@ pub fn health(mut commands: Commands, mut query: Query<(Entity, &Health)>) {
         if health.0 <= 0.0 {
             commands.entity(ent).despawn()
         }
+    }
+}
+
+pub fn spawn_asteroids(
+    mut commands: Commands,
+    player: Query<(&Transform, &RigidBodyVelocity), With<Player>>,
+    asteroids: Query<&Transform, With<Asteroid>>,
+) {
+    if let Ok((player_pos, player_vel)) = player.single() {
+        let player2 = project2d(player_pos.translation);
+        let min_dist = asteroids
+            .iter()
+            .map(|t| t.translation)
+            .map(project2d)
+            .map(|v| v.distance(player2))
+            .fold(f32::MAX, f32::min);
+        if min_dist != f32::MAX && min_dist > 600.0 {
+            let linvel: Vec2 = player_vel.linvel.into();
+            commands.spawn_bundle(AsteroidBundle::new(
+                (player2 + linvel.normalize() * 300.0).into(),
+                Default::default(),
+            ));
+        }
+        // for asteroid_pos in asteroids.iter() {
+        //     let dist =
+        //         project2d(player_pos.translation).distance(project2d(asteroid_pos.translation));
+
+        //     if dist > 600.0 {
+        //         println!("rand: {}", rand::thread_rng().gen::<f32>())
+        //     }
+        // }
     }
 }

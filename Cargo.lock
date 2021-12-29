@@ -2645,7 +2645,9 @@ dependencies = [
  "bevy_prototype_lyon",
  "bevy_rapier2d",
  "bevy_webgl2",
+ "getrandom",
  "lazy_static",
+ "rand",
  "wasm-bindgen",
 ]
 

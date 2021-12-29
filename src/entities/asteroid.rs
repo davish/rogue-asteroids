@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use lazy_static::lazy_static;
 
+use crate::components::types::Asteroid;
 use crate::entities::entity::EntityBundle;
 
 lazy_static! {
@@ -16,19 +17,26 @@ lazy_static! {
     ];
 }
 
-pub fn new_asteroid_bundle() -> EntityBundle {
-    let size = 4.0;
-    let asteroid_points = ASTEROID_SHAPE
-        .clone()
-        .into_iter()
-        .map(|p| (p.0 * size, p.1 * size))
-        .collect::<Vec<(f32, f32)>>();
-    EntityBundle::new(
-        asteroid_points,
-        Vec2::ZERO.into(),
-        RigidBodyVelocity {
-            linvel: Vec2::ZERO.into(),
-            angvel: 1.0,
-        },
-    )
+#[derive(Bundle)]
+pub struct AsteroidBundle {
+    #[bundle]
+    base: EntityBundle,
+
+    asteroid: Asteroid,
+}
+
+impl AsteroidBundle {
+    pub fn new(pos: RigidBodyPosition, vel: RigidBodyVelocity) -> AsteroidBundle {
+        let size = 4.0;
+        let asteroid_points = ASTEROID_SHAPE
+            .clone()
+            .into_iter()
+            .map(|p| (p.0 * size, p.1 * size))
+            .collect::<Vec<(f32, f32)>>();
+
+        AsteroidBundle {
+            base: EntityBundle::new(asteroid_points, pos, vel),
+            asteroid: Asteroid {},
+        }
+    }
 }
