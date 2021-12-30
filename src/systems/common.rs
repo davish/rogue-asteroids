@@ -39,6 +39,10 @@ pub fn damage(
                         println!("Health for target: {}", health.0);
                     }
                 }
+                let ea = a.entity();
+                let eb = b.entity();
+                commands.entity(ea).despawn_recursive();
+                commands.entity(eb).despawn_recursive();
             }
             _ => (),
         }
