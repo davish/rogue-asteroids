@@ -36,7 +36,7 @@ pub fn run() {
         .add_system(health.system())
         .add_system(camera_tracking.system())
         .add_system(spawn_asteroids.system())
-        .add_system(mock_touch.system())
+        // .add_system(mock_touch.system())
         .init_resource::<LastAsteroidSpawnTime>()
         .init_resource::<SpawnedChunks>()
         .init_resource::<Score>()
