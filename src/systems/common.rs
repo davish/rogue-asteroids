@@ -16,6 +16,7 @@ pub fn damage(
     mut contact_events: EventReader<ContactEvent>,
     mut bodies: Query<(Entity, &mut Health), Without<Bullet>>,
     bullets: Query<Entity, With<Bullet>>,
+    mut score: ResMut<Score>,
 ) {
     let is_bullet = |x: &ColliderHandle| bullets.get(x.entity()).is_ok();
     let sort_collision = |a, b: &ColliderHandle| {
@@ -33,7 +34,8 @@ pub fn damage(
                 if let Some((target, bullet)) = sort_collision(a, b) {
                     commands.entity(bullet).despawn();
                     if let Ok((_entity, mut health)) = bodies.get_mut(target) {
-                        health.0 -= 20.0;
+                        health.0 -= 100.0;
+                        score.0 += 1;
                         println!("Health for target: {}", health.0);
                     }
                 }

@@ -3,7 +3,10 @@ use bevy::{
     render::{camera::Camera, render_graph::base::camera},
 };
 
-use crate::components::{ship::*, types::Player};
+use crate::components::{
+    ship::*,
+    types::{Player, Score, ScoreText},
+};
 
 pub fn player(
     keyboard_input: Res<Input<KeyCode>>,
@@ -52,5 +55,11 @@ pub fn camera_tracking(
                 }
             }
         }
+    }
+}
+
+pub fn display_score(score: Res<Score>, mut text: Query<&mut Text, With<ScoreText>>) {
+    if let Ok(mut text) = text.single_mut() {
+        text.sections[0].value = format!("Score: {}", score.0);
     }
 }

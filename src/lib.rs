@@ -7,6 +7,7 @@ use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
 use components::chunk::{Chunk, SpawnedChunks};
+use components::types::{Score, ScoreText};
 use wasm_bindgen::prelude::*;
 
 use crate::components::types::{LastAsteroidSpawnTime, Player};
@@ -28,6 +29,7 @@ pub fn run() {
         .add_startup_system(setup.system())
         .add_system(impulse.system())
         .add_system(player.system())
+        .add_system(display_score.system())
         .add_system(weapons.system())
         .add_system(despawn.system())
         .add_system(damage.system())
@@ -36,6 +38,7 @@ pub fn run() {
         .add_system(spawn_asteroids.system())
         .init_resource::<LastAsteroidSpawnTime>()
         .init_resource::<SpawnedChunks>()
+        .init_resource::<Score>()
         .run();
 }
 
@@ -53,32 +56,34 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     //     .insert(Asteroid {});
     AsteroidBundle::spawn_for_chunk(&mut commands, &Chunk::new(0.0, 0.0));
 
-    commands.spawn_bundle(TextBundle {
-        style: Style {
-            align_self: AlignSelf::FlexEnd,
-            position_type: PositionType::Absolute,
-            position: Rect {
-                top: Val::Px(5.0),
-                left: Val::Px(15.0),
+    commands
+        .spawn_bundle(TextBundle {
+            style: Style {
+                align_self: AlignSelf::FlexEnd,
+                position_type: PositionType::Absolute,
+                position: Rect {
+                    top: Val::Px(5.0),
+                    left: Val::Px(15.0),
+                    ..Default::default()
+                },
                 ..Default::default()
             },
+            // Use the `Text::with_section` constructor
+            text: Text::with_section(
+                // Accepts a `String` or any type that converts into a `String`, such as `&str`
+                "hello\nbevy!",
+                TextStyle {
+                    font_size: 32.0,
+                    color: Color::WHITE,
+                    font: asset_server.load("FiraSans-Bold.ttf"),
+                },
+                // Note: You can use `Default::default()` in place of the `TextAlignment`
+                TextAlignment {
+                    horizontal: HorizontalAlign::Center,
+                    ..Default::default()
+                },
+            ),
             ..Default::default()
-        },
-        // Use the `Text::with_section` constructor
-        text: Text::with_section(
-            // Accepts a `String` or any type that converts into a `String`, such as `&str`
-            "hello\nbevy!",
-            TextStyle {
-                font_size: 32.0,
-                color: Color::WHITE,
-                font: asset_server.load("FiraSans-Bold.ttf"),
-            },
-            // Note: You can use `Default::default()` in place of the `TextAlignment`
-            TextAlignment {
-                horizontal: HorizontalAlign::Center,
-                ..Default::default()
-            },
-        ),
-        ..Default::default()
-    });
+        })
+        .insert(ScoreText {});
 }
