@@ -36,7 +36,7 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-wasm-${{ hashFiles('**/Cargo.lock') }}
-      - run: cargo install wasm-pack
+      - run: cargo install wasm-pack || true
       - run: wasm-pack build --target web --release --out-dir wasm
       - run: rm wasm/.gitignore
       - run: mkdir -p public/
