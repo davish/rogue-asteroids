@@ -1,4 +1,5 @@
 use bevy::{
+    input::touch::TouchPhase,
     prelude::*,
     render::{camera::Camera, render_graph::base::camera},
 };
@@ -7,13 +8,47 @@ use crate::components::{
     ship::*,
     types::{Player, Score, ScoreText},
 };
+use std::f32::consts::PI;
+
+pub fn mock_touch(
+    mouse: Res<Input<MouseButton>>,
+    windows: Res<Windows>,
+    mut touch_events: EventWriter<TouchInput>,
+) {
+    let window = windows.get_primary().unwrap();
+    let touch_phase = if mouse.just_pressed(MouseButton::Left) {
+        Some(TouchPhase::Started)
+    } else if mouse.just_released(MouseButton::Left) {
+        Some(TouchPhase::Ended)
+    } else if mouse.pressed(MouseButton::Left) {
+        Some(TouchPhase::Moved)
+    } else {
+        None
+    };
+    if let (Some(phase), Some(cursor_pos)) = (touch_phase, window.cursor_position()) {
+        touch_events.send(TouchInput {
+            phase: phase,
+            position: cursor_pos,
+            force: None,
+            id: 0,
+        })
+    }
+}
+
+const DEBOUNCE_DIST: f32 = 10.0;
 
 pub fn player(
     keyboard_input: Res<Input<KeyCode>>,
+    touch_input: Res<Touches>,
     time: Res<Time>,
     mut query: Query<&mut Controls, With<Player>>,
+    windows: Res<Windows>,
 ) {
+    let window = windows.get_primary().unwrap();
+    let width = window.width();
+
     if let Ok(mut controls) = query.single_mut() {
+        controls.last_shot += time.delta_seconds();
         controls.rotate = if keyboard_input.pressed(KeyCode::Left) {
             Some(RotationDir::LEFT)
         } else if keyboard_input.pressed(KeyCode::Right) {
@@ -23,9 +58,27 @@ pub fn player(
         };
 
         controls.thrust = keyboard_input.pressed(KeyCode::Up);
-
-        controls.last_shot += time.delta_seconds();
         controls.shoot = keyboard_input.pressed(KeyCode::Space) && controls.last_shot >= 0.25;
+
+        // If any touch input is received, override keyboard.
+        for finger in touch_input.iter() {
+            if finger.position().x < width * 0.5 {
+                let dist = finger.distance();
+                if dist.y > DEBOUNCE_DIST {
+                    controls.thrust = true;
+                }
+                controls.rotate = if dist.x < -DEBOUNCE_DIST {
+                    Some(RotationDir::LEFT)
+                } else if dist.x > DEBOUNCE_DIST {
+                    Some(RotationDir::RIGHT)
+                } else {
+                    None
+                };
+            } else {
+                controls.shoot = controls.last_shot >= 0.25;
+            }
+        }
+
         if controls.shoot {
             controls.last_shot = 0.0;
         }
