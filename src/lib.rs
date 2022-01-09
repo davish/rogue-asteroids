@@ -52,10 +52,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         .spawn_bundle(Ship::new(Vec2::new(0.0, -215.0).into()))
         .insert(Player {});
 
-    // commands
-    //     .spawn_bundle(AsteroidBundle::new(Default::default(), Default::default()))
-    //     .insert(Asteroid {});
-    AsteroidBundle::spawn_for_chunk(&mut commands, &Chunk::new(0.0, 0.0));
+    // commands.spawn_bundle(AsteroidBundle::new(Default::default(), Default::default()));
+    // AsteroidBundle::spawn_for_chunk(&mut commands, &Chunk::new(0.0, 0.0));
 
     commands
         .spawn_bundle(TextBundle {

@@ -8,7 +8,6 @@ use crate::components::{
     ship::*,
     types::{Player, Score, ScoreText},
 };
-use std::f32::consts::PI;
 
 pub fn mock_touch(
     mouse: Res<Input<MouseButton>>,

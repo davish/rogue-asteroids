@@ -23,7 +23,7 @@ pub struct BulletBundle {
 impl BulletBundle {
     pub fn launch_from(pos: &RigidBodyPosition, vel: &RigidBodyVelocity, launch_time: f64) -> Self {
         let angle = pos.position.rotation.angle();
-        let launch_vel = Vec2::new(-angle.sin(), angle.cos()) * 200.0 + vel.linvel.into();
+        let launch_vel = Vec2::new(-angle.sin(), angle.cos()) * 500.0 + vel.linvel.into();
         let ship_position: Vec2 = pos.position.translation.into();
         let launch_position: Vec2 = ship_position + Vec2::new(-angle.sin(), angle.cos()) * 20.0;
         Self {
@@ -34,6 +34,7 @@ impl BulletBundle {
                     linvel: launch_vel.into(),
                     angvel: 0.0,
                 },
+                1.0,
             ),
             launch_time: SpawnedAt(launch_time),
             despawn_after: DespawnAfter(3.0),

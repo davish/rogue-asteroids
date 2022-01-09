@@ -14,7 +14,7 @@ pub struct EntityBundle {
     #[bundle]
     collider: ColliderBundle,
     physics_sync: RigidBodyPositionSync,
-    health: Health,
+    sturdiness: Sturdiness,
 }
 
 pub fn build_geometry(shape: &[(f32, f32)]) -> ShapeBundle {
@@ -41,6 +41,7 @@ impl EntityBundle {
         shape: Vec<(f32, f32)>,
         position: RigidBodyPosition,
         velocity: RigidBodyVelocity,
+        sturdiness: f32,
     ) -> Self {
         EntityBundle {
             geometry: build_geometry(&shape),
@@ -67,7 +68,7 @@ impl EntityBundle {
                 ..Default::default()
             },
             physics_sync: RigidBodyPositionSync::Discrete,
-            health: Health(100.0),
+            sturdiness: Sturdiness(sturdiness),
         }
     }
 }

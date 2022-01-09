@@ -40,6 +40,7 @@ impl Ship {
                     linvel: Vec2::ZERO.into(),
                     angvel: 0.0,
                 },
+                100.0,
             ),
             engines: Engines {
                 thrust: 50000.0,
