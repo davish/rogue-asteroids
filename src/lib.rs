@@ -3,7 +3,7 @@ mod entities;
 mod systems;
 mod util;
 
-use bevy::prelude::*;
+use bevy::{prelude::*, diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin}};
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
 use components::chunk::{Chunk, SpawnedChunks};
@@ -37,6 +37,8 @@ pub fn run() {
         .add_system(camera_tracking.system())
         .add_system(spawn_asteroids.system())
         .add_system(mock_touch.system())
+        .add_plugin(LogDiagnosticsPlugin::default())
+        .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .init_resource::<LastAsteroidSpawnTime>()
         .init_resource::<SpawnedChunks>()
         .init_resource::<Score>()
