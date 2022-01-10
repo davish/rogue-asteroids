@@ -27,11 +27,10 @@ pub fn build_geometry(shape: &[(f32, f32)]) -> ShapeBundle {
                 .collect(),
             closed: true,
         },
-        ShapeColors {
-            main: Color::WHITE,
-            outline: Color::WHITE,
-        },
-        DrawMode::Stroke(StrokeOptions::default()),
+        DrawMode::Stroke(StrokeMode {
+            color: Color::WHITE,
+            options: Default::default(),
+        }),
         Transform::default(),
     )
 }
@@ -39,8 +38,8 @@ pub fn build_geometry(shape: &[(f32, f32)]) -> ShapeBundle {
 impl EntityBundle {
     pub fn new(
         shape: Vec<(f32, f32)>,
-        position: RigidBodyPosition,
-        velocity: RigidBodyVelocity,
+        position: RigidBodyPositionComponent,
+        velocity: RigidBodyVelocityComponent,
         sturdiness: f32,
     ) -> Self {
         EntityBundle {
@@ -51,11 +50,12 @@ impl EntityBundle {
                 forces: RigidBodyForces {
                     gravity_scale: 0.0,
                     ..Default::default()
-                },
+                }
+                .into(),
                 ..Default::default()
             },
             collider: ColliderBundle {
-                collider_type: ColliderType::Solid,
+                collider_type: ColliderType::Solid.into(),
                 shape: ColliderShape::convex_hull(
                     &(shape
                         .clone()
@@ -63,7 +63,8 @@ impl EntityBundle {
                         .map(|(x, y)| Point::new(x, y))
                         .collect::<Vec<_>>()),
                 )
-                .unwrap(),
+                .unwrap()
+                .into(),
                 flags: ActiveEvents::CONTACT_EVENTS.into(),
                 ..Default::default()
             },

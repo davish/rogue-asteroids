@@ -39,7 +39,7 @@ impl AsteroidBundle {
             .collect::<Vec<(f32, f32)>>();
 
         AsteroidBundle {
-            base: EntityBundle::new(asteroid_points, pos, vel, 25.0),
+            base: EntityBundle::new(asteroid_points, pos.into(), vel.into(), 25.0),
             asteroid: Asteroid {},
         }
     }

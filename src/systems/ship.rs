@@ -7,7 +7,11 @@ use crate::entities::{bullet::BulletBundle, entity::build_geometry, ship::EXHAUS
 pub fn weapons(
     mut commands: Commands,
     time: Res<Time>,
-    mut query: Query<(&Controls, &RigidBodyPosition, &RigidBodyVelocity)>,
+    mut query: Query<(
+        &Controls,
+        &RigidBodyPositionComponent,
+        &RigidBodyVelocityComponent,
+    )>,
 ) {
     for (controls, pos, vel) in query.iter_mut() {
         if controls.shoot {
@@ -26,9 +30,9 @@ pub fn impulse(
         Entity,
         &Controls,
         &Engines,
-        &RigidBodyPosition,
-        &mut RigidBodyVelocity,
-        &mut RigidBodyForces,
+        &RigidBodyPositionComponent,
+        &mut RigidBodyVelocityComponent,
+        &mut RigidBodyForcesComponent,
         Option<&Children>,
     )>,
     thruster_query: Query<Entity, With<Thruster>>,
@@ -40,25 +44,25 @@ pub fn impulse(
             None => 0.0,
         };
 
-        match children.map_or(None, |c| {
-            c.iter()
-                .find(|child| thruster_query.get(*child.clone()).is_ok())
-        }) {
-            Some(thruster) => {
-                if !controls.thrust {
-                    commands.entity(thruster.clone()).despawn()
-                }
-            }
-            None => {
-                if controls.thrust {
-                    let thruster = commands
-                        .spawn_bundle(build_geometry(&EXHAUST_SHAPE))
-                        .insert(Thruster {})
-                        .id();
-                    commands.entity(entity).push_children(&[thruster]);
-                }
-            }
-        };
+        // match children.map_or(None, |c| {
+        //     c.iter()
+        //         .find(|child| thruster_query.get(*child.clone()).is_ok())
+        // }) {
+        //     Some(thruster) => {
+        //         if !controls.thrust {
+        //             commands.entity(thruster.clone()).despawn()
+        //         }
+        //     }
+        //     None => {
+        //         if controls.thrust {
+        //             let thruster = commands
+        //                 .spawn_bundle(build_geometry(&EXHAUST_SHAPE))
+        //                 .insert(Thruster {})
+        //                 .id();
+        //             commands.entity(entity).push_children(&[thruster]);
+        //         }
+        //     }
+        // };
 
         forces.force = (if controls.thrust {
             let angle = pos.position.rotation.angle();

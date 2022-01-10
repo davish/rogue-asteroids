@@ -31,7 +31,7 @@ pub struct Ship {
 }
 
 impl Ship {
-    pub fn new(pos: RigidBodyPosition) -> Self {
+    pub fn new(pos: RigidBodyPositionComponent) -> Self {
         Self {
             base: EntityBundle::new(
                 SPACESHIP_SHAPE.clone(),
@@ -39,7 +39,8 @@ impl Ship {
                 RigidBodyVelocity {
                     linvel: Vec2::ZERO.into(),
                     angvel: 0.0,
-                },
+                }
+                .into(),
                 100.0,
             ),
             engines: Engines {

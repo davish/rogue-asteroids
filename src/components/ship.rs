@@ -1,7 +1,11 @@
+use bevy::prelude::Component;
+
+#[derive(Component)]
 pub enum RotationDir {
     LEFT,
     RIGHT,
 }
+#[derive(Component)]
 pub struct Controls {
     pub thrust: bool,
     pub rotate: Option<RotationDir>,
@@ -18,11 +22,14 @@ impl Default for Controls {
         }
     }
 }
+#[derive(Component)]
 pub struct Engines {
     pub thrust: f32,
     pub spin: f32,
 }
 
+#[derive(Component)]
 pub struct Thruster;
 
+#[derive(Component)]
 pub struct Fuel(pub f32);

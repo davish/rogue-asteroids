@@ -3,25 +3,24 @@ mod entities;
 mod systems;
 mod util;
 
+use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::prelude::*;
+
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
-use components::chunk::{Chunk, SpawnedChunks};
+use components::chunk::SpawnedChunks;
 use components::types::{Score, ScoreText};
+use entities::asteroid::AsteroidBundle;
 use wasm_bindgen::prelude::*;
 
 use crate::components::types::{LastAsteroidSpawnTime, Player};
-use crate::entities::{asteroid::*, ship::*};
+use crate::entities::ship::*;
 use crate::systems::{common::*, player::*, ship::*};
 
 #[wasm_bindgen]
 pub fn run() {
-    let mut app = App::build();
+    let mut app = App::new();
     app.add_plugins(DefaultPlugins);
-
-    // when building for Web, use WebGL2 rendering
-    #[cfg(target_arch = "wasm32")]
-    app.add_plugin(bevy_webgl2::WebGL2Plugin);
 
     app.insert_resource(ClearColor(Color::BLACK))
         .add_plugin(ShapePlugin)
@@ -29,17 +28,19 @@ pub fn run() {
         .add_startup_system(setup.system())
         .add_system(impulse.system())
         .add_system(player.system())
-        .add_system(display_score.system())
-        .add_system(weapons.system())
-        .add_system(despawn.system())
-        .add_system(damage.system())
-        .add_system(health.system())
-        .add_system(camera_tracking.system())
-        .add_system(spawn_asteroids.system())
-        .add_system(mock_touch.system())
-        .init_resource::<LastAsteroidSpawnTime>()
-        .init_resource::<SpawnedChunks>()
-        .init_resource::<Score>()
+        .add_plugin(LogDiagnosticsPlugin::default())
+        .add_plugin(FrameTimeDiagnosticsPlugin::default())
+        // .add_system(display_score.system())
+        // .add_system(weapons.system())
+        // .add_system(despawn.system())
+        // .add_system(damage.system())
+        // .add_system(health.system())
+        // .add_system(camera_tracking.system())
+        // .add_system(spawn_asteroids.system())
+        // .add_system(mock_touch.system())
+        // .init_resource::<LastAsteroidSpawnTime>()
+        // .init_resource::<SpawnedChunks>()
+        // .init_resource::<Score>()
         .run();
 }
 
@@ -52,7 +53,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         .spawn_bundle(Ship::new(Vec2::new(0.0, -215.0).into()))
         .insert(Player {});
 
-    // commands.spawn_bundle(AsteroidBundle::new(Default::default(), Default::default()));
+    commands.spawn_bundle(AsteroidBundle::new(Default::default(), Default::default()));
     // AsteroidBundle::spawn_for_chunk(&mut commands, &Chunk::new(0.0, 0.0));
 
     commands
