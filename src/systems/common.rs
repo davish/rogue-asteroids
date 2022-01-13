@@ -17,22 +17,23 @@ fn process_collision(
         &mut Sturdiness,
         &RigidBodyMassProps,
         &RigidBodyVelocity,
+        &ColliderMaterial,
     )>,
     a: Entity,
     b: Entity,
 ) -> Result<(), QueryEntityError> {
-    let mut get_components = |e: Entity| -> Result<(f32, Vec2), QueryEntityError> {
+    let mut get_components = |e: Entity| -> Result<(f32, Vec2, f32), QueryEntityError> {
         let obj = bodies.get_mut(e)?;
         let m = obj.2.local_mprops.inv_mass.recip();
         let v: Vec2 = obj.3.linvel.into();
-        Ok((m, v))
+        Ok((m, v, obj.4.restitution))
     };
-    let restitution: f32 = 0.9;
     let k = 500.0_f32.recip();
 
-    let (ma, va) = get_components(a)?;
-    let (mb, vb) = get_components(b)?;
+    let (ma, va, rsta) = get_components(a)?;
+    let (mb, vb, rstb) = get_components(b)?;
     let relv2 = (va - vb).length_squared();
+    let restitution: f32 = (rsta + rstb) / 2.; // TODO: support other CoeffecientCombineRules beyond Average.
 
     let e_a = 0.5 * mb * relv2;
     let e_b = 0.5 * ma * relv2;
@@ -58,6 +59,7 @@ pub fn damage(
         &mut Sturdiness,
         &RigidBodyMassProps,
         &RigidBodyVelocity,
+        &ColliderMaterial,
     )>,
 ) {
     for contact_event in contact_events.iter() {

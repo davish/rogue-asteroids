@@ -65,6 +65,10 @@ impl EntityBundle {
                 )
                 .unwrap(),
                 flags: ActiveEvents::CONTACT_EVENTS.into(),
+                material: ColliderMaterial {
+                    restitution: 0.9,
+                    ..Default::default()
+                },
                 ..Default::default()
             },
             physics_sync: RigidBodyPositionSync::Discrete,
