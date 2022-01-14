@@ -1,6 +1,5 @@
 use bevy::{ecs::query::QueryEntityError, prelude::*};
 use bevy_rapier2d::prelude::*;
-// use rand::Rng;
 
 use crate::{
     components::{
@@ -8,7 +7,7 @@ use crate::{
         types::*,
     },
     entities::asteroid::AsteroidBundle,
-    util::project2d,
+    util::{project2d, STURDINESS_CONSTANT},
 };
 
 fn process_collision(
@@ -28,7 +27,6 @@ fn process_collision(
         let v: Vec2 = obj.3.linvel.into();
         Ok((m, v, obj.4.restitution))
     };
-    let k = 500.0_f32.recip();
 
     let (ma, va, rsta) = get_components(a)?;
     let (mb, vb, rstb) = get_components(b)?;
@@ -43,7 +41,7 @@ fn process_collision(
 
     let mut step_sturdiness = |entity, energy: f32| -> Result<(), QueryEntityError> {
         let mut sturdiness = bodies.get_mut(entity)?.1;
-        sturdiness.0 = sturdiness.0 - k * energy / sturdiness.0;
+        sturdiness.0 = sturdiness.0 - STURDINESS_CONSTANT * energy / sturdiness.0;
         Ok(())
     };
     let _ = step_sturdiness(a, rel_e_a)?;
@@ -72,44 +70,6 @@ pub fn damage(
     }
 }
 
-pub fn damage_old(
-    mut commands: Commands,
-    mut contact_events: EventReader<ContactEvent>,
-    mut bodies: Query<(Entity, &mut Sturdiness), Without<Bullet>>,
-    bullets: Query<Entity, With<Bullet>>,
-    mut score: ResMut<Score>,
-) {
-    let is_bullet = |x: &ColliderHandle| bullets.get(x.entity()).is_ok();
-    let sort_collision = |a, b: &ColliderHandle| {
-        if is_bullet(a) {
-            Some((b.entity(), a.entity()))
-        } else if is_bullet(b) {
-            Some((a.entity(), b.entity()))
-        } else {
-            None
-        }
-    };
-    for contact_event in contact_events.iter() {
-        match contact_event {
-            ContactEvent::Started(a, b) => {
-                if let Some((target, bullet)) = sort_collision(a, b) {
-                    commands.entity(bullet).despawn();
-                    if let Ok((_entity, mut health)) = bodies.get_mut(target) {
-                        health.0 -= 100.0;
-                        score.0 += 1;
-                        println!("Health for target: {}", health.0);
-                    }
-                }
-                let ea = a.entity();
-                let eb = b.entity();
-                commands.entity(ea).despawn_recursive();
-                commands.entity(eb).despawn_recursive();
-            }
-            _ => (),
-        }
-    }
-}
-
 pub fn despawn(
     mut commands: Commands,
     time: Res<Time>,
@@ -122,10 +82,29 @@ pub fn despawn(
     }
 }
 
-pub fn health(mut commands: Commands, mut query: Query<(Entity, &Sturdiness)>) {
-    for (ent, sturdiness) in query.iter_mut() {
+pub fn health(
+    mut commands: Commands,
+    mut query: Query<(
+        Entity,
+        &RigidBodyPosition,
+        &RigidBodyVelocity,
+        &RigidBodyMassProps,
+        &Sturdiness,
+        Option<&Asteroid>,
+    )>,
+) {
+    for (ent, pos, vel, mass, sturdiness, asteroid) in query.iter_mut() {
         if sturdiness.0 <= 0.0 {
-            commands.entity(ent).despawn()
+            commands.entity(ent).despawn();
+            if let Some(Asteroid(scale)) = asteroid {
+                if *scale > 2. {
+                    for daughter in
+                        AsteroidBundle::generate_daughters(pos, vel, mass, *scale, sturdiness.0)
+                    {
+                        commands.spawn_bundle(daughter);
+                    }
+                }
+            }
         }
     }
 }
@@ -147,28 +126,5 @@ pub fn spawn_asteroids(
             AsteroidBundle::spawn_for_chunk(&mut commands, &chunk);
             spawned_chunks.0.insert(chunk);
         }
-
-        // let player2 = project2d(player_pos.translation);
-        // let min_dist = asteroids
-        //     .iter()
-        //     .map(|t| t.translation)
-        //     .map(project2d)
-        //     .map(|v| v.distance(player2))
-        //     .fold(f32::MAX, f32::min);
-        // if min_dist != f32::MAX && min_dist > 600.0 {
-        //     let linvel: Vec2 = player_vel.linvel.into();
-        //     commands.spawn_bundle(AsteroidBundle::new(
-        //         (player2 + linvel.normalize() * 300.0).into(),
-        //         Default::default(),
-        //     ));
-        // }
-        // for asteroid_pos in asteroids.iter() {
-        //     let dist =
-        //         project2d(player_pos.translation).distance(project2d(asteroid_pos.translation));
-
-        //     if dist > 600.0 {
-        //         println!("rand: {}", rand::thread_rng().gen::<f32>())
-        //     }
-        // }
     }
 }

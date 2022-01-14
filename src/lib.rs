@@ -3,7 +3,10 @@ mod entities;
 mod systems;
 mod util;
 
-use bevy::{prelude::*, diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin}};
+use bevy::{
+    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
+    prelude::*,
+};
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::prelude::*;
 use components::chunk::{Chunk, SpawnedChunks};
@@ -35,7 +38,7 @@ pub fn run() {
         .add_system(damage.system())
         .add_system(health.system())
         .add_system(camera_tracking.system())
-        .add_system(spawn_asteroids.system())
+        // .add_system(spawn_asteroids.system())
         .add_system(mock_touch.system())
         .add_plugin(LogDiagnosticsPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
@@ -54,7 +57,11 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         .spawn_bundle(Ship::new(Vec2::new(0.0, -215.0).into()))
         .insert(Player {});
 
-    // commands.spawn_bundle(AsteroidBundle::new(Default::default(), Default::default()));
+    commands.spawn_bundle(AsteroidBundle::new(
+        Default::default(),
+        Default::default(),
+        4.0,
+    ));
     // AsteroidBundle::spawn_for_chunk(&mut commands, &Chunk::new(0.0, 0.0));
 
     commands

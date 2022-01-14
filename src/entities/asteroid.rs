@@ -7,7 +7,7 @@ use std::f32::consts::PI;
 use crate::components::chunk::Chunk;
 use crate::components::types::Asteroid;
 use crate::entities::entity::EntityBundle;
-use crate::util::from_polar;
+use crate::util::{from_polar, rotate, STURDINESS_CONSTANT};
 
 lazy_static! {
     static ref ASTEROID_SHAPE: Vec<(f32, f32)> = vec![
@@ -30,18 +30,92 @@ pub struct AsteroidBundle {
 }
 
 impl AsteroidBundle {
-    pub fn new(pos: RigidBodyPosition, vel: RigidBodyVelocity) -> AsteroidBundle {
-        let size = 4.0;
+    pub fn new(pos: RigidBodyPosition, vel: RigidBodyVelocity, scale: f32) -> AsteroidBundle {
         let asteroid_points = ASTEROID_SHAPE
             .clone()
             .into_iter()
-            .map(|p| (p.0 * size, p.1 * size))
+            .map(|p| (p.0 * scale, p.1 * scale))
             .collect::<Vec<(f32, f32)>>();
 
         AsteroidBundle {
             base: EntityBundle::new(asteroid_points, pos, vel, 25.0),
-            asteroid: Asteroid {},
+            asteroid: Asteroid(scale),
         }
+    }
+
+    pub fn generate_daughters(
+        pos: &RigidBodyPosition,
+        vel: &RigidBodyVelocity,
+        mass: &RigidBodyMassProps,
+        scale: f32,
+        sturdiness: f32,
+    ) -> Vec<AsteroidBundle> {
+        let NUM_DAUGHTERS: f32 = 3.;
+        let BASE_WIDTH = 10.;
+        let m = mass.local_mprops.inv_mass.recip();
+        let v: Vec2 = vel.linvel.into();
+        let posvec: Vec2 = pos.position.translation.into();
+        let ke = 0.5 * m * v.length_squared();
+
+        let pe = sturdiness.powf(2.0) / STURDINESS_CONSTANT; // Leftover potential energy after collision
+        let total_energy = ke + pe;
+
+        let daughter_energy = total_energy / NUM_DAUGHTERS;
+        let daughter_mass = m / NUM_DAUGHTERS;
+        let daughter_speed = (2. * daughter_energy / daughter_mass).sqrt();
+        let daughter_scale = (scale / NUM_DAUGHTERS).powi(2); // Surface area (and therefore density and mass) are scaled by scale^2
+
+        let axis = v.normalize();
+        let axis_angle = axis.angle_between(Vec2::new(1., 0.));
+
+        vec![
+            Self::new(
+                RigidBodyPosition {
+                    position: (
+                        posvec
+                            + rotate(
+                                BASE_WIDTH * daughter_scale * from_polar(1.0, axis_angle),
+                                PI / 2.,
+                            ),
+                        0.0,
+                    )
+                        .into(),
+                    ..Default::default()
+                },
+                RigidBodyVelocity {
+                    linvel: (rotate(axis, -0.2) * daughter_speed).into(),
+                    angvel: 0.,
+                },
+                daughter_scale,
+            ),
+            Self::new(
+                pos.clone(),
+                RigidBodyVelocity {
+                    linvel: (axis * daughter_speed).into(),
+                    angvel: 0.,
+                },
+                daughter_scale,
+            ),
+            Self::new(
+                RigidBodyPosition {
+                    position: (
+                        posvec
+                            + rotate(
+                                BASE_WIDTH * daughter_scale * from_polar(1.0, axis_angle),
+                                -PI / 2.,
+                            ),
+                        0.0,
+                    )
+                        .into(),
+                    ..Default::default()
+                },
+                RigidBodyVelocity {
+                    linvel: (rotate(axis, 0.2) * daughter_speed).into(),
+                    angvel: 0.,
+                },
+                daughter_scale,
+            ),
+        ]
     }
 
     pub fn spawn_for_chunk(commands: &mut Commands, chunk: &Chunk) {
@@ -56,6 +130,7 @@ impl AsteroidBundle {
                     linvel: vel.into(),
                     angvel: rng.gen_range(-1.0..1.0),
                 },
+                4.0,
             ));
         }
     }

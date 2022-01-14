@@ -27,6 +27,7 @@ lazy_static = "1.4.0"
 rand = "0.8"
 getrandom = { version = "0.2", features = ["js"] }
 itertools = "0.10.3"
+rand_distr = "0.4.2"
 
 # Enable optimizations for dependencies (incl. Bevy), but not for our code:
 [profile.dev.package."*"]

@@ -66,7 +66,7 @@ impl EntityBundle {
                 .unwrap(),
                 flags: ActiveEvents::CONTACT_EVENTS.into(),
                 material: ColliderMaterial {
-                    restitution: 0.9,
+                    restitution: 0.2,
                     ..Default::default()
                 },
                 ..Default::default()

@@ -1,5 +1,5 @@
 pub struct Bullet;
-pub struct Asteroid;
+pub struct Asteroid(pub f32);
 pub struct SpawnedAt(pub f64);
 pub struct DespawnAfter(pub f64);
 pub struct Sturdiness(pub f32);
