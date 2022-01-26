@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use lazy_static::lazy_static;
 use rand::Rng;
+use rand_distr::{Distribution, Normal};
 use std::f32::consts::PI;
 
 use crate::components::chunk::Chunk;
@@ -58,7 +59,7 @@ impl AsteroidBundle {
         let ke = 0.5 * m * v.length_squared();
 
         let pe = sturdiness.powf(2.0) / STURDINESS_CONSTANT; // Leftover potential energy after collision
-        let total_energy = ke + pe;
+        let total_energy = (ke + pe) / 10.0;
 
         let daughter_energy = total_energy / NUM_DAUGHTERS;
         let daughter_mass = m / NUM_DAUGHTERS;
@@ -121,7 +122,11 @@ impl AsteroidBundle {
     pub fn spawn_for_chunk(commands: &mut Commands, chunk: &Chunk) {
         println!("Spawning for {:?}", chunk);
         let mut rng = rand::thread_rng();
-        for _ in 0..2 {
+        let num_distribution = Normal::new(3.0, 0.3).unwrap();
+        let num_asteroids_in_chunk = (num_distribution.sample(&mut rng) as f64).round() as i32;
+        let scale_distribution = Normal::new(4.0, 0.5).unwrap();
+
+        for _ in 0..num_asteroids_in_chunk {
             let coords = chunk.random_point_inside(&mut rng);
             let vel = from_polar(rng.gen_range(0.0..100.0), rng.gen_range(0.0..(2.0 * PI)));
             commands.spawn_bundle(AsteroidBundle::new(
@@ -130,7 +135,7 @@ impl AsteroidBundle {
                     linvel: vel.into(),
                     angvel: rng.gen_range(-1.0..1.0),
                 },
-                4.0,
+                scale_distribution.sample(&mut rng),
             ));
         }
     }

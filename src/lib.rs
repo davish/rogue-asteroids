@@ -17,6 +17,9 @@ use crate::components::types::{LastAsteroidSpawnTime, Player};
 use crate::entities::{asteroid::*, ship::*};
 use crate::systems::{common::*, player::*, ship::*};
 
+#[derive(Default, Debug)]
+struct LastLog(pub f64);
+
 #[wasm_bindgen]
 pub fn run() {
     let mut app = App::build();
@@ -40,12 +43,30 @@ pub fn run() {
         .add_system(camera_tracking.system())
         // .add_system(spawn_asteroids.system())
         .add_system(mock_touch.system())
-        .add_plugin(LogDiagnosticsPlugin::default())
-        .add_plugin(FrameTimeDiagnosticsPlugin::default())
+        .add_system(log_energy.system())
+        // .add_plugin(LogDiagnosticsPlugin::default())
+        // .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .init_resource::<LastAsteroidSpawnTime>()
         .init_resource::<SpawnedChunks>()
         .init_resource::<Score>()
+        .init_resource::<LastLog>()
         .run();
+}
+
+fn log_energy(
+    bodies: Query<(&RigidBodyMassProps, &RigidBodyVelocity)>,
+    time: Res<Time>,
+    mut last_log: ResMut<LastLog>,
+) {
+    if time.seconds_since_startup() - last_log.0 > 1.0 {
+        let mut energy: f32 = 0.0;
+        for body in bodies.iter() {
+            energy +=
+                0.5 * body.0.local_mprops.inv_mass.recip() * body.1.linvel.magnitude_squared();
+        }
+        println!("Total Kinetic Energy: {}", energy);
+        last_log.0 = time.seconds_since_startup();
+    }
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -58,8 +79,26 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         .insert(Player {});
 
     commands.spawn_bundle(AsteroidBundle::new(
-        Default::default(),
-        Default::default(),
+        RigidBodyPosition {
+            position: (Vec2::new(-200.0, 0.0), 0.0).into(),
+            ..Default::default()
+        },
+        RigidBodyVelocity {
+            linvel: Vec2::new(100.0, 0.).into(),
+            angvel: 0.0,
+        },
+        4.0,
+    ));
+
+    commands.spawn_bundle(AsteroidBundle::new(
+        RigidBodyPosition {
+            position: (Vec2::new(200.0, 0.0), 0.0).into(),
+            ..Default::default()
+        },
+        RigidBodyVelocity {
+            linvel: Vec2::new(0.0, 0.).into(),
+            angvel: 0.0,
+        },
         4.0,
     ));
     // AsteroidBundle::spawn_for_chunk(&mut commands, &Chunk::new(0.0, 0.0));
